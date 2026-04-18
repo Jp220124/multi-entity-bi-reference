@@ -110,12 +110,16 @@ pip install -e ".[dev]"
 cp .env.example .env
 # Edit .env and set ANTHROPIC_API_KEY
 
-# Run the demo
-python examples/demo_run.py
+# Run the tests (uses mocked Anthropic client — no API calls)
+pytest -v
 
-# Run the tests
-pytest
+# Run the demo end-to-end (uses the real Anthropic API — set your key)
+python examples/demo_run.py
 ```
+
+`pytest` discovers the tests via the repo-root `conftest.py`, so the
+test command works immediately after `git clone` without waiting for
+editable install.
 
 ---
 

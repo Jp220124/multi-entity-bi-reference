@@ -5,13 +5,13 @@ is written to the shared context layer. No unstructured output reaches
 downstream agents.
 """
 
-from schemas.models import (
+from .models import (
     Analysis,
     Classification,
+    EntityType,
     Event,
     EventCategory,
     EventPriority,
-    EntityType,
     Synthesis,
 )
 

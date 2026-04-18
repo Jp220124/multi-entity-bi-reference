@@ -6,6 +6,6 @@ zero-setup local development; a Supabase implementation is a drop-in
 replacement.
 """
 
-from context.store import ContextStore, SQLiteContextStore
+from .store import ContextStore, SQLiteContextStore
 
 __all__ = ["ContextStore", "SQLiteContextStore"]
