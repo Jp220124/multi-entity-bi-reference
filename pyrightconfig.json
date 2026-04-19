@@ -1,0 +1,21 @@
+{
+    "include": [
+        "agents",
+        "context",
+        "orchestrator",
+        "schemas",
+        "examples",
+        "tests",
+        "conftest.py",
+        "smoke_test.py"
+    ],
+    "extraPaths": ["."],
+    "executionEnvironments": [
+        { "root": ".", "extraPaths": ["."] }
+    ],
+    "reportMissingImports": "warning",
+    "reportPrivateImportUsage": "none",
+    "pythonVersion": "3.11",
+    "venvPath": ".",
+    "useLibraryCodeForTypes": true
+}

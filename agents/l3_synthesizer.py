@@ -1,11 +1,11 @@
 """L3 · Strategic Synthesis agent.
 
-Consumes L2 analyses flagged for escalation and produces the
-portfolio-level briefing a human executive actually reads. Uses
-Claude Opus with extended thinking — the model is given a token
-budget to deliberate before committing to an answer.
+Consumes the L2 analyses that were flagged for escalation and produces
+the portfolio-level briefing a human executive actually reads. Uses
+Claude Opus with extended thinking — the model is given a bounded
+token budget to deliberate before committing to an answer.
 
-Status: scaffold. Prompt wiring lands in Sunday's pass.
+L3 is the most expensive tier per call. Keep the batch size small.
 """
 
 from __future__ import annotations
@@ -15,7 +15,7 @@ import textwrap
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from agents.base import Agent, ModelTier
+from .base import Agent, ModelTier
 from schemas.models import Analysis, Synthesis
 
 
@@ -28,16 +28,16 @@ class L3Input(BaseModel):
 
 
 class L3Synthesizer(Agent[L3Input, Synthesis]):
-    """Produce the portfolio-level briefing."""
+    """Produce the portfolio-level briefing from escalated analyses."""
 
     tier = ModelTier.OPUS
     output_schema = Synthesis
     max_output_tokens = 4096
 
-    # Budget is sourced from the environment so it can be tuned without
-    # code changes. Default is a balanced starting point; Week 3 of a
-    # real engagement usually calibrates this against observed output
-    # quality vs cost.
+    # Thinking budget is sourced from the environment so an operator can
+    # retune without a code change. Default calibrated as a balanced
+    # starting point; real engagements refine this in the first few
+    # weeks against observed output quality vs. cost.
     extended_thinking_budget_tokens = int(
         os.environ.get("L3_THINKING_BUDGET_TOKENS", "8000")
     )
@@ -45,22 +45,57 @@ class L3Synthesizer(Agent[L3Input, Synthesis]):
     system_prompt = textwrap.dedent(
         """\
         You are the L3 strategic synthesis agent. You receive a set of
-        L2 analyses and produce one JSON Synthesis object containing
-        a portfolio-level briefing for a human executive.
+        L2 cross-entity analyses and produce ONE JSON Synthesis object
+        containing a portfolio-level briefing for a human executive.
 
-        Be explicit about contradictions, reversals, and anything the
-        upstream L2 analyses may have missed when taken individually.
+        Return EXACTLY ONE JSON object matching this schema — no
+        markdown, no prose, no code fences:
+
+        {
+          "analysis_ids":               ["<uuid>", ...],         // L2 analyses that fed this synthesis
+          "headline":                   "<=120 char executive headline",
+          "briefing":                   "<3-6 paragraphs, under 4000 chars>",
+          "contradictions_detected":    ["<contradiction>", ...],// may be empty
+          "suggested_next_watch":       ["<thing to watch>", ...]// 1-5 items
+        }
+
+        What makes a good briefing:
+          - Write for a 70-year-old CEO of a multi-entity business. No
+            jargon, no hedging, no repetition. Short sentences, strong
+            verbs.
+          - State the 2-3 things that actually matter THIS cycle across
+            the portfolio, with the evidence in one line each.
+          - Be explicit about contradictions: where does this cycle's
+            data contradict a prior assumption, last cycle's analysis,
+            or the stated operating strategy? List each as its own
+            entry in contradictions_detected.
+          - suggested_next_watch names the 1-5 concrete things to
+            monitor in the next cycle. These should be observable
+            signals, not vague themes ("Rum Room 6pm-10pm bookings"
+            not "Rum Room performance").
+          - If the analyses you receive do not warrant executive
+            attention, say so plainly in the briefing. Do not invent
+            urgency.
+          - Output ONLY the JSON. No preamble.
         """
     ).strip()
 
     def build_prompt(self, payload: L3Input) -> str:
-        lines = ["Synthesize a portfolio briefing from these analyses:", ""]
+        lines: list[str] = [
+            f"Synthesize a portfolio briefing from these {len(payload.analyses)} "
+            "L2 analyses (newest first):",
+            "",
+        ]
+        # Cap at 20 even though L3Input does not — batches larger than
+        # this consume too much Opus budget per call and produce worse
+        # synthesis (dilution).
         for a in payload.analyses[:20]:
             lines.append(
-                f"- id={a.id} entities={[e.value for e in a.involves_entities]} "
-                f"pattern={a.pattern_summary} "
-                f"action={a.recommended_action or '(none)'}"
+                f"- analysis_id={a.id} "
+                f"entities={[e.value for e in a.involves_entities]} "
+                f"escalate_to_l3={a.escalate_to_l3} "
+                f"pattern_summary={a.pattern_summary!r} "
+                f"recommended_action={a.recommended_action!r}"
             )
-        lines.append("")
-        lines.append("Return the JSON Synthesis object now.")
+        lines.extend(["", "Return the JSON Synthesis object now."])
         return "\n".join(lines)
