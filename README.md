@@ -6,6 +6,11 @@ Generic domain: a hypothetical portfolio business with retail and hospitality en
 
 Built by [Priyanshu Kumar](https://www.linkedin.com/in/priyanshu-axiom) — previously built a production multi-agent system for Amazon Merch intelligence.
 
+![Architecture overview](docs/architecture.png)
+
+A full sample run against the live Anthropic API — input, output
+briefing, and cost breakdown — is in [`docs/sample_run.md`](docs/sample_run.md).
+
 ---
 
 ## Why This Exists

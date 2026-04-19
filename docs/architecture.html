@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Multi-Entity BI Reference — Architecture Overview</title>
+<style>
+  :root {
+    --ink: #0a1929;
+    --ink-soft: #334155;
+    --muted: #64748b;
+    --paper: #ffffff;
+    --tint: #f8fafc;
+    --line: #cbd5e1;
+    --accent: #1e40af;
+    --accent-soft: #dbeafe;
+    --l1: #059669;
+    --l2: #0891b2;
+    --l3: #7c3aed;
+    --warn: #b45309;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: var(--paper); color: var(--ink); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, system-ui, sans-serif; font-size: 14px; line-height: 1.45; }
+  .page { max-width: 1400px; margin: 0 auto; padding: 32px 40px 40px; }
+  header { border-bottom: 2px solid var(--ink); padding-bottom: 16px; margin-bottom: 28px; display: flex; justify-content: space-between; align-items: flex-end; }
+  header h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.01em; }
+  header .sub { color: var(--muted); font-size: 13px; margin-top: 4px; }
+  header .meta { text-align: right; color: var(--muted); font-size: 12px; line-height: 1.6; }
+  header .meta strong { color: var(--ink); }
+
+  .flow { display: grid; grid-template-columns: 1fr 1fr 1.2fr 1fr; gap: 18px; align-items: stretch; }
+
+  .col { display: flex; flex-direction: column; gap: 10px; }
+  .col-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 2px; }
+
+  .node { background: var(--tint); border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; }
+  .node h3 { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+  .node p { font-size: 12px; color: var(--ink-soft); }
+  .node .tag { display: inline-block; font-size: 10px; padding: 2px 6px; border-radius: 3px; background: var(--accent-soft); color: var(--accent); font-weight: 600; letter-spacing: 0.03em; margin-top: 6px; }
+
+  .vpn-wrapper { border: 2px dashed var(--warn); border-radius: 10px; padding: 14px 12px 12px; position: relative; background: #fffbeb; }
+  .vpn-label { position: absolute; top: -10px; left: 14px; background: var(--warn); color: white; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 3px; letter-spacing: 0.05em; }
+
+  .context-layer { background: linear-gradient(180deg, #eff6ff 0%, #dbeafe 100%); border: 1.5px solid var(--accent); border-radius: 8px; padding: 14px; text-align: center; }
+  .context-layer h3 { color: var(--accent); font-size: 14px; font-weight: 700; margin-bottom: 6px; }
+  .context-layer p { font-size: 12px; color: var(--ink-soft); }
+
+  .orchestrator { border: 1.5px solid var(--ink); border-radius: 8px; padding: 10px 12px; background: white; text-align: center; }
+  .orchestrator h3 { font-size: 13px; font-weight: 700; }
+  .orchestrator p { font-size: 11px; color: var(--muted); }
+
+  .tier { border-radius: 8px; padding: 12px 14px; color: white; position: relative; }
+  .tier.l1 { background: var(--l1); }
+  .tier.l2 { background: var(--l2); }
+  .tier.l3 { background: var(--l3); }
+  .tier .label { font-size: 10px; font-weight: 700; letter-spacing: 0.08em; opacity: 0.9; }
+  .tier h3 { font-size: 15px; font-weight: 700; margin: 3px 0 6px; }
+  .tier .role { font-size: 12px; opacity: 0.95; margin-bottom: 8px; }
+  .tier .stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px; font-size: 10px; border-top: 1px solid rgba(255,255,255,0.25); padding-top: 6px; }
+  .tier .stats div span { display: block; opacity: 0.7; font-size: 9px; letter-spacing: 0.04em; }
+  .tier .stats div strong { font-size: 11px; font-weight: 700; }
+
+  .arrow { font-size: 20px; color: var(--muted); align-self: center; text-align: center; font-weight: 300; }
+  .arrow-down { text-align: center; color: var(--muted); font-size: 16px; padding: 4px 0; }
+
+  .outputs { display: flex; flex-direction: column; gap: 8px; }
+  .output-item { background: white; border: 1px solid var(--line); border-radius: 6px; padding: 10px 12px; }
+  .output-item h4 { font-size: 12px; font-weight: 600; margin-bottom: 2px; }
+  .output-item p { font-size: 11px; color: var(--muted); }
+
+  .agents-row { margin-top: 28px; padding-top: 20px; border-top: 1px solid var(--line); }
+  .agents-row .col-title { margin-bottom: 10px; }
+  .agents-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .agent-card { border: 1px solid var(--line); border-left: 3px solid var(--accent); border-radius: 6px; padding: 10px 12px; background: white; }
+  .agent-card h4 { font-size: 12px; font-weight: 700; margin-bottom: 3px; }
+  .agent-card p { font-size: 11px; color: var(--muted); line-height: 1.45; }
+
+  footer { margin-top: 28px; padding-top: 16px; border-top: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: var(--muted); }
+  .pillars { display: flex; gap: 18px; }
+  .pillar { display: flex; flex-direction: column; align-items: center; }
+  .pillar strong { color: var(--ink); font-size: 13px; font-weight: 700; letter-spacing: 0.05em; }
+  .pillar span { font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; }
+
+  @media print { body { font-size: 12px; } .page { padding: 16px; } header { margin-bottom: 18px; } }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header>
+    <div>
+      <h1>Multi-Entity BI Reference — Architecture Overview</h1>
+      <div class="sub">Tiered LLM Architecture · Shared Context · Auditable Decisioning</div>
+    </div>
+    <div class="meta">
+      <strong>Reference implementation</strong><br>
+      Four agents · L1 / L2 / L3 + Delivery<br>
+      github.com/Jp220124/multi-entity-bi-reference
+    </div>
+  </header>
+
+  <div class="flow">
+
+    <!-- Column 1: Data Sources (inside client network) -->
+    <div class="col">
+      <div class="col-title">1 · Data Sources</div>
+      <div class="vpn-wrapper">
+        <span class="vpn-label">INSIDE CLIENT NETWORK</span>
+        <div class="node" style="margin-top: 6px;">
+          <h3>Accounting / ERP</h3>
+          <p>Consolidated ledger across entities</p>
+          <span class="tag">VPN-GATED</span>
+        </div>
+        <div class="node" style="margin-top: 8px;">
+          <h3>POS Systems</h3>
+          <p>Retail · multiple locations</p>
+        </div>
+        <div class="node" style="margin-top: 8px;">
+          <h3>Inventory / Wholesale</h3>
+          <p>Stock, pricing, fulfillment</p>
+        </div>
+        <div class="node" style="margin-top: 8px;">
+          <h3>Hotel PMS</h3>
+          <p>Hospitality properties</p>
+        </div>
+        <div class="node" style="margin-top: 8px;">
+          <h3>Ancillary</h3>
+          <p>Calls · Email · Calendar · External feeds</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Column 2: VPN Worker + Context Layer -->
+    <div class="col">
+      <div class="col-title">2 · Ingestion &amp; Context</div>
+
+      <div class="node">
+        <h3>VPN Worker</h3>
+        <p>Lives inside your network. Pulls raw data. Anonymizes before egress. <strong>Your data never leaves the VPN.</strong></p>
+        <span class="tag">SINGLE EGRESS POINT</span>
+      </div>
+
+      <div class="arrow-down">&#x2193;</div>
+
+      <div class="context-layer">
+        <h3>Supabase Context Layer</h3>
+        <p>Anonymized observations only.<br>Shared context across all agents.<br>Audit log of every read/write.</p>
+      </div>
+
+      <div class="arrow-down">&#x2193;</div>
+
+      <div class="orchestrator">
+        <h3>Orchestrator</h3>
+        <p>Routes events to the right tier</p>
+      </div>
+    </div>
+
+    <!-- Column 3: 3-Tier LLM -->
+    <div class="col">
+      <div class="col-title">3 · Tiered Intelligence</div>
+
+      <div class="tier l1">
+        <div class="label">TIER 1 · TRIAGE</div>
+        <h3>Claude Haiku</h3>
+        <div class="role">Tags &amp; categorizes every event. Decides what deserves deeper analysis.</div>
+        <div class="stats">
+          <div><span>VOLUME</span><strong>100% of events</strong></div>
+          <div><span>SPEED</span><strong>&lt; 1 sec</strong></div>
+          <div><span>COST</span><strong>$0.25 / 1M tok</strong></div>
+        </div>
+      </div>
+
+      <div class="arrow-down">&#x2193;</div>
+
+      <div class="tier l2">
+        <div class="label">TIER 2 · ANALYZE</div>
+        <h3>Claude Sonnet</h3>
+        <div class="role">Cross-entity business logic. Margin, trends, variance across all 5 businesses.</div>
+        <div class="stats">
+          <div><span>VOLUME</span><strong>~10% of events</strong></div>
+          <div><span>SPEED</span><strong>2–5 sec</strong></div>
+          <div><span>COST</span><strong>$3 / 1M tok</strong></div>
+        </div>
+      </div>
+
+      <div class="arrow-down">&#x2193;</div>
+
+      <div class="tier l3">
+        <div class="label">TIER 3 · SYNTHESIZE</div>
+        <h3>Claude Opus · Extended Thinking</h3>
+        <div class="role">Strategic decisions. Multi-entity anomalies. Executive-grade synthesis.</div>
+        <div class="stats">
+          <div><span>VOLUME</span><strong>&lt; 1% of events</strong></div>
+          <div><span>SPEED</span><strong>30–60 sec</strong></div>
+          <div><span>COST</span><strong>$15 / 1M tok</strong></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Column 4: Outputs -->
+    <div class="col">
+      <div class="col-title">4 · Delivery</div>
+
+      <div class="outputs">
+        <div class="output-item">
+          <h4>Morning Brief</h4>
+          <p>Daily executive email. Cross-entity portfolio summary.</p>
+        </div>
+        <div class="output-item">
+          <h4>Slack / Email Alerts</h4>
+          <p>Real-time flags: margin anomalies, inventory risk, outlier events.</p>
+        </div>
+        <div class="output-item">
+          <h4>Ask-the-System Chat</h4>
+          <p>Natural-language query across all entities. Returns audited answers.</p>
+        </div>
+        <div class="output-item">
+          <h4>Dashboard</h4>
+          <p>At-a-glance view. Drill-down into any agent's reasoning.</p>
+        </div>
+        <div class="output-item" style="border-left: 3px solid var(--l3);">
+          <h4>Audit Log</h4>
+          <p>Every L1 tag · L2 analysis · L3 synthesis is traceable. No black box.</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Phase 1 Agents -->
+  <div class="agents-row">
+    <div class="col-title">Phase 1 · The Four Foundation Agents (per Service Agreement)</div>
+    <div class="agents-grid">
+      <div class="agent-card">
+        <h4>Agent 1 · Classification &amp; Routing</h4>
+        <p>L1 / Haiku. Ingests raw inputs, classifies each by entity, category, priority. Routes to downstream agents. High-volume, low-latency.</p>
+      </div>
+      <div class="agent-card">
+        <h4>Agent 2 · Cross-Entity Analyzer</h4>
+        <p>L2 / Sonnet. Finds patterns only visible when hospitality, retail, real estate data are compared. Schema validation on every output.</p>
+      </div>
+      <div class="agent-card">
+        <h4>Agent 3 · Strategic Synthesis</h4>
+        <p>L3 / Opus + Extended Thinking. Portfolio-level decisions. Pattern recognition, reversal detection, contradictions across entities.</p>
+      </div>
+      <div class="agent-card">
+        <h4>Agent 4 · Alerting / Output Delivery</h4>
+        <p>Shared utility for Agents 1–3. Formats &amp; delivers to Slack / email. Threading, retry logic, dead-letter logging.</p>
+      </div>
+    </div>
+    <div style="margin-top: 14px; padding: 10px 14px; background: #fef3c7; border-left: 3px solid var(--warn); border-radius: 4px; font-size: 12px; color: var(--ink-soft);">
+      <strong style="color: var(--warn);">Phase 1 scope note:</strong> These four agents establish the <strong>foundation architecture</strong> — the classification, analysis, synthesis, and delivery infrastructure on which business-domain agents (revenue, margin, inventory, executive brief, etc.) are built in Phase 2 onward. The input sources, classification taxonomy, and exact output channels are finalised jointly during Week 1 kickoff.
+    </div>
+  </div>
+
+  <footer>
+    <div>Multi-Entity BI Reference · Architecture Overview · MIT License</div>
+    <div class="pillars">
+      <div class="pillar"><strong>COST</strong><span>tiered</span></div>
+      <div class="pillar"><strong>SPEED</strong><span>sub-second L1</span></div>
+      <div class="pillar"><strong>AUDIT</strong><span>every decision traceable</span></div>
+    </div>
+  </footer>
+
+</div>
+</body>
+</html>

@@ -34,13 +34,15 @@ class L3Synthesizer(Agent[L3Input, Synthesis]):
     output_schema = Synthesis
     max_output_tokens = 4096
 
-    # Thinking budget is sourced from the environment so an operator can
-    # retune without a code change. Default calibrated as a balanced
-    # starting point; real engagements refine this in the first few
-    # weeks against observed output quality vs. cost.
-    extended_thinking_budget_tokens = int(
-        os.environ.get("L3_THINKING_BUDGET_TOKENS", "8000")
-    )
+    # Thinking dial is sourced from the environment so an operator can
+    # retune without a code change. "medium" is a balanced starting
+    # point; real engagements refine this in the first few weeks
+    # against observed output quality vs. cost.
+    #   L3_THINKING_EFFORT           "low" | "medium" | "high"   (preferred)
+    #   L3_THINKING_BUDGET_TOKENS    integer                      (legacy fallback)
+    thinking_effort = os.environ.get("L3_THINKING_EFFORT", "medium").strip() or None
+    _legacy_budget = os.environ.get("L3_THINKING_BUDGET_TOKENS", "").strip()
+    extended_thinking_budget_tokens = int(_legacy_budget) if _legacy_budget.isdigit() else None
 
     system_prompt = textwrap.dedent(
         """\

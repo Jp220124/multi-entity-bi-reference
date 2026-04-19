@@ -89,7 +89,13 @@ class Agent(ABC, Generic[TInput, TOutput]):
     system_prompt: str = ""
     max_output_tokens: int = 2048
 
-    # Only L3 uses extended thinking; all other agents leave this alone.
+    # Only L3 uses extended thinking. Two axes of control:
+    #   - thinking_effort: "low" | "medium" | "high" | None
+    #   - extended_thinking_budget_tokens: legacy knob, retained for
+    #     older API versions that accept a fixed-budget thinking block.
+    # Subclasses set at most one of the two. The run() method picks the
+    # right payload shape based on which is set.
+    thinking_effort: str | None = None
     extended_thinking_budget_tokens: int | None = None
 
     def __init__(self, client: Anthropic, model_id: str) -> None:
@@ -119,10 +125,13 @@ class Agent(ABC, Generic[TInput, TOutput]):
             "messages": [{"role": "user", "content": prompt}],
         }
 
-        if self.extended_thinking_budget_tokens:
-            # Opus L3 only: allow the model to think for longer before
-            # committing to an answer. The budget cap is there to keep
-            # cost bounded and predictable.
+        if self.thinking_effort:
+            # Preferred form for current Claude 4.x models: the API
+            # picks how hard to think based on the effort dial.
+            request_kwargs["thinking"] = {"type": "adaptive"}
+            request_kwargs["output_config"] = {"effort": self.thinking_effort}
+        elif self.extended_thinking_budget_tokens:
+            # Legacy form retained for older API versions.
             request_kwargs["thinking"] = {
                 "type": "enabled",
                 "budget_tokens": self.extended_thinking_budget_tokens,
