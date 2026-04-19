@@ -63,9 +63,9 @@ def _demo_events() -> list[Event]:
     base = datetime(2026, 4, 19, 8, 0, tzinfo=UTC)
 
     return [
-        # Retail: a strong day at a jewelry location
+        # Retail: a strong day at one retail location
         Event(
-            source_system="jewelry_pos",
+            source_system="retail_pos",
             entity_hint=EntityType.RETAIL,
             payload={
                 "location_anon": "retail_A",
@@ -77,7 +77,7 @@ def _demo_events() -> list[Event]:
         ),
         # Retail: a routine day at a second location
         Event(
-            source_system="jewelry_pos",
+            source_system="retail_pos",
             entity_hint=EntityType.RETAIL,
             payload={
                 "location_anon": "retail_B",
@@ -111,15 +111,15 @@ def _demo_events() -> list[Event]:
             },
             observed_at=base + timedelta(hours=3),
         ),
-        # External signal in retail zone
+        # External signal affecting the retail + hospitality zone
         Event(
-            source_system="port_authority_feed",
+            source_system="weather_service",
             entity_hint=EntityType.RETAIL,
             payload={
-                "signal_type": "cruise_arrival",
-                "expected_pax": 3_100,
-                "eta_local": "10:00",
-                "terminal_anon": "port_1",
+                "signal_type": "storm_advisory",
+                "severity": "moderate",
+                "eta_local": "14:00",
+                "duration_hours": 8,
             },
             observed_at=base + timedelta(hours=4),
         ),

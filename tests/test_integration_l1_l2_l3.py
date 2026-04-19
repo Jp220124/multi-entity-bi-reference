@@ -172,7 +172,7 @@ def events() -> list[Event]:
     """Two events from different entities in the same window."""
     return [
         Event(
-            source_system="jewelry_pos",
+            source_system="retail_pos",
             entity_hint=EntityType.RETAIL,
             payload={"location_anon": "store_1", "amount_usd": 1850.0},
             observed_at=datetime(2026, 4, 18, 14, 30, tzinfo=UTC),

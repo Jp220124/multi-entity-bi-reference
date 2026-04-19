@@ -25,8 +25,10 @@ from schemas.models import EntityType, Event
 @pytest.fixture()
 def retail_sale_event() -> Event:
     """A routine retail POS sale."""
+    # retail_pos is a generic source name; a real deployment maps this
+    # to the client's actual POS product (Square, Lightspeed, Shopify, etc.).
     return Event(
-        source_system="jewelry_pos",
+        source_system="retail_pos",
         entity_hint=EntityType.RETAIL,
         payload={
             "ticket_id_anon": "T-8921",

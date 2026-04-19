@@ -74,8 +74,8 @@ class L3Synthesizer(Agent[L3Input, Synthesis]):
             entry in contradictions_detected.
           - suggested_next_watch names the 1-5 concrete things to
             monitor in the next cycle. These should be observable
-            signals, not vague themes ("bar bookings 6pm-10pm on
-            cruise days" not "bar performance").
+            signals, not vague themes ("checkout queue length 6pm-10pm
+            on event weekends" not "checkout performance").
           - If the analyses you receive do not warrant executive
             attention, say so plainly in the briefing. Do not invent
             urgency.

@@ -29,7 +29,7 @@ def test_classifier_returns_validated_classification(retail_sale_event, anthropi
                 "entity": "retail",
                 "category": "sale",
                 "priority": "routine",
-                "rationale": "Typical jewelry retail POS transaction within expected range.",
+                "rationale": "Typical retail POS transaction within expected range.",
             }
         )
     )
@@ -87,8 +87,8 @@ def test_classifier_reports_cost_and_latency(retail_sale_event, anthropic_mock):
     result = classifier.run(retail_sale_event)
 
     # Rough sanity check: cost follows the Haiku tier rate card exactly.
-    # 1000 input @ $0.25 / 1M + 500 output @ $1.25 / 1M
-    expected = (1_000 * 0.25 + 500 * 1.25) / 1_000_000
+    # 1000 input @ $1 / 1M + 500 output @ $5 / 1M  (Haiku 4.5)
+    expected = (1_000 * 1.00 + 500 * 5.00) / 1_000_000
     assert result.estimated_cost_usd == pytest.approx(expected, rel=1e-6)
     assert result.input_tokens == 1_000
     assert result.output_tokens == 500
@@ -151,6 +151,6 @@ def test_build_prompt_includes_event_metadata(retail_sale_event):
     prompt = classifier.build_prompt(retail_sale_event)
 
     assert str(retail_sale_event.id) in prompt
-    assert "jewelry_pos" in prompt
+    assert "retail_pos" in prompt
     assert "retail" in prompt
     assert "Return the JSON object now." in prompt

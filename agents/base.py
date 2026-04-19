@@ -43,14 +43,16 @@ class ModelTier(str, Enum):
     OPUS = "opus"
 
 
-# Approximate per-million-token rates in USD. Kept in one place so cost
-# estimators stay in sync. Source: Anthropic public pricing at time of
-# writing. Override with real billing data in production.
+# Per-million-token rates in USD. Source: Anthropic public pricing at
+# https://docs.anthropic.com/en/docs/about-claude/pricing
+#   (verified current against Haiku 4.5, Sonnet 4.6, Opus 4.7).
+# Rates pinned to the current tier model. Override with real billing
+# data if you are on a custom enterprise agreement.
 _TIER_RATES_USD_PER_MILLION: dict[ModelTier, tuple[float, float]] = {
     # (input_rate, output_rate)
-    ModelTier.HAIKU: (0.25, 1.25),
+    ModelTier.HAIKU: (1.00, 5.00),
     ModelTier.SONNET: (3.00, 15.00),
-    ModelTier.OPUS: (15.00, 75.00),
+    ModelTier.OPUS: (5.00, 25.00),
 }
 
 

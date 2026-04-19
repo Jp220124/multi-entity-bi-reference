@@ -74,14 +74,14 @@ class Event(_TimestampedModel):
         - A POS sale at a retail location.
         - A booking at a hotel.
         - A cost entry posted to the general ledger.
-        - An external signal (cruise schedule, weather advisory).
+        - An external signal (weather advisory, scheduled event).
 
     Upstream extractors are responsible for anonymizing the payload
     before constructing the Event. Personally identifiable information
     must never flow into the LLM tier.
     """
 
-    source_system: str = Field(..., description="e.g. 'jewelry_pos', 'hotel_pms'")
+    source_system: str = Field(..., description="e.g. 'retail_pos', 'hotel_pms'")
     entity_hint: EntityType | None = Field(
         default=None,
         description="Optional hint from the extractor; L1 may override.",

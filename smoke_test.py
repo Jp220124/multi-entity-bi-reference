@@ -138,7 +138,7 @@ def _fake_response(text: str, *, input_tokens: int = 100, output_tokens: int = 5
 
 def _event() -> Event:
     return Event(
-        source_system="jewelry_pos",
+        source_system="retail_pos",
         entity_hint=EntityType.RETAIL,
         payload={"amount_usd": 412.50, "location_anon": "store_2"},
         observed_at=datetime(2026, 4, 17, 14, 3, tzinfo=UTC),
@@ -225,7 +225,8 @@ def test_classifier_cost_math() -> None:
     )
     c = L1Classifier(client=client, model_id="claude-haiku-4-5")
     result = c.run(event)
-    expected = (1_000 * 0.25 + 500 * 1.25) / 1_000_000
+    # Haiku 4.5: $1 / $5 per 1M tokens
+    expected = (1_000 * 1.00 + 500 * 5.00) / 1_000_000
     assert abs(result.estimated_cost_usd - expected) < 1e-9
 
 
@@ -234,7 +235,7 @@ def test_build_prompt_includes_metadata() -> None:
     event = _event()
     prompt = c.build_prompt(event)
     assert str(event.id) in prompt
-    assert "jewelry_pos" in prompt
+    assert "retail_pos" in prompt
     assert "Return the JSON object now." in prompt
 
 

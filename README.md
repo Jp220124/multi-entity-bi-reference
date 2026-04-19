@@ -19,12 +19,14 @@ Large multi-entity businesses sit on fragmented data: a POS system here, an ERP 
 
 A naive approach — one LLM call per event — burns money and produces shallow output. A tiered approach, where each model tier does what it is best at, produces better output at a fraction of the cost:
 
-| Tier | Model | Role | Volume | Speed | Cost (per 1M tok) |
-|------|-------|------|--------|-------|-------------------|
-| L1 | Haiku | Triage · classify every event | 100% | < 1 s | ~$0.25 |
-| L2 | Sonnet | Analyze · cross-reference entities | ~10% | 2–5 s | ~$3 |
-| L3 | Opus + Extended Thinking | Synthesize · strategic briefings | < 1% | 30–60 s | ~$15 |
+| Tier | Model | Role | Volume | Speed | Input / Output (per 1M tokens) |
+|------|-------|------|--------|-------|--------------------------------|
+| L1 | Haiku 4.5 | Triage · classify every event | 100% | < 1 s | $1 / $5 |
+| L2 | Sonnet 4.6 | Analyze · cross-reference entities | ~10% | 2–5 s | $3 / $15 |
+| L3 | Opus 4.7 + Extended Thinking | Synthesize · strategic briefings | < 1% | 10–60 s | $5 / $25 |
 | L4 | *(shared utility)* | Deliver · Slack / email / dashboards | — | — | — |
+
+Rates sourced from [Anthropic's public pricing](https://docs.anthropic.com/en/docs/about-claude/pricing); the actual rate card used by the cost estimator is in `agents/base.py` and can be overridden for custom enterprise pricing.
 
 ---
 
