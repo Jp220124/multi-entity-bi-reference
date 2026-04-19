@@ -14,14 +14,14 @@ from __future__ import annotations
 import logging
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from enum import Enum
+from enum import StrEnum
 
 from schemas.models import Synthesis
 
 logger = logging.getLogger(__name__)
 
 
-class Channel(str, Enum):
+class Channel(StrEnum):
     """Where a delivery lands."""
 
     SLACK = "slack"

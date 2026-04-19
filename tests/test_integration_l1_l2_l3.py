@@ -208,7 +208,7 @@ def orchestrator(tmp_store):  # type: ignore[no-untyped-def]
 
 
 def test_full_cycle_produces_all_four_artifacts(orchestrator, events):
-    orch, store, _client = orchestrator
+    orch, _store, _client = orchestrator
 
     result = orch.run_cycle(events)
 

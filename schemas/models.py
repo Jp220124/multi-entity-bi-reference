@@ -10,14 +10,14 @@ inputs.
 from __future__ import annotations
 
 from datetime import UTC, datetime
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 from uuid import UUID, uuid4
 
 from pydantic import BaseModel, ConfigDict, Field
 
 
-class EntityType(str, Enum):
+class EntityType(StrEnum):
     """High-level business entity types in the reference portfolio.
 
     The real-world mapping is a client-specific taxonomy locked down
@@ -29,7 +29,7 @@ class EntityType(str, Enum):
     REAL_ESTATE = "real_estate"
 
 
-class EventCategory(str, Enum):
+class EventCategory(StrEnum):
     """What the event is about, independent of which entity produced it."""
 
     SALE = "sale"
@@ -40,7 +40,7 @@ class EventCategory(str, Enum):
     EXTERNAL_SIGNAL = "external_signal"
 
 
-class EventPriority(str, Enum):
+class EventPriority(StrEnum):
     """L1's routing decision.
 
     - ROUTINE: log and stop. No downstream analysis.

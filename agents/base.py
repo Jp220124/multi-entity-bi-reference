@@ -18,7 +18,7 @@ import logging
 import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from enum import Enum
+from enum import StrEnum
 from typing import Any, Generic, TypeVar
 
 from anthropic import Anthropic
@@ -30,7 +30,7 @@ TInput = TypeVar("TInput", bound=BaseModel)
 TOutput = TypeVar("TOutput", bound=BaseModel)
 
 
-class ModelTier(str, Enum):
+class ModelTier(StrEnum):
     """Logical model tier.
 
     The actual model identifier is resolved at construction time from
