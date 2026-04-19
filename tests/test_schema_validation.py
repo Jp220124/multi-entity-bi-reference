@@ -7,7 +7,7 @@ raises ``ValidationError`` on malformed input.
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from uuid import uuid4
 
 import pytest
@@ -29,7 +29,7 @@ def test_event_rejects_extra_fields():
         Event(
             source_system="pos",
             payload={"a": 1},
-            observed_at=datetime.now(timezone.utc),
+            observed_at=datetime.now(UTC),
             made_up_field="nope",  # type: ignore[call-arg]
         )
 

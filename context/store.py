@@ -14,10 +14,11 @@ import json
 import logging
 import sqlite3
 from abc import ABC, abstractmethod
+from collections.abc import Iterator
 from contextlib import contextmanager
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Iterator
+from typing import Any
 from uuid import UUID
 
 from schemas.models import (
@@ -367,7 +368,7 @@ class SQLiteContextStore(ContextStore):
                 output_tokens,
                 estimated_cost_usd,
                 latency_ms,
-                datetime.now(timezone.utc).isoformat(),
+                datetime.now(UTC).isoformat(),
             ),
         )
 

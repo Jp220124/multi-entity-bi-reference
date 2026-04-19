@@ -9,62 +9,63 @@ hospitality, and real estate.
 
 Six events in a single 24-hour window:
 
-| Source system | Entity | Signal |
+| Source system          | Entity      | Signal |
 |---|---|---|
-| `jewelry_pos`         | retail        | Location A — 58 tickets, $34,200 revenue, $589 avg basket |
-| `jewelry_pos`         | retail        | Location B — 23 tickets, $9,450 revenue (routine) |
-| `hotel_pms`           | hospitality   | Property A — 14 open ops tickets, 11 opened in last 24h, 91.4% occupancy |
-| `hotel_pms`           | hospitality   | Property A — 7 late checkouts, 5 front-desk overrides, 2 auto-fee applies |
-| `port_authority_feed` | retail        | Cruise arrival — 3,100 expected pax, ETA 10:00 local |
-| `building_maintenance`| real_estate   | Building C — 9 open WOs, 6 HVAC, 3 after-hours |
+| `jewelry_pos`          | retail      | Location A — 58 tickets, $34,200 revenue, $589 avg basket |
+| `jewelry_pos`          | retail      | Location B — 23 tickets, $9,450 revenue (routine) |
+| `hotel_pms`            | hospitality | Property A — 14 open ops tickets, 11 opened in last 24h, 91.4% occupancy |
+| `hotel_pms`            | hospitality | Property A — 7 late checkouts, 5 front-desk overrides |
+| `port_authority_feed`  | retail      | Cruise arrival — 3,100 expected pax, ETA 10:00 local |
+| `building_maintenance` | real_estate | Building C — 9 open WOs, 6 HVAC, 3 after-hours |
 
 ## The synthesis the system produced
 
-> **Headline:** Cruise arrival of 3,100 hits hospitality at 91% occupancy with 11 open tickets; retail surge imminent
+> **Headline:** Cruise-day demand spike collides with HVAC backlog and 91% hotel occupancy — shared capacity at risk today
 >
-> One event matters today. A 3,100-passenger cruise ship is landing on us while hospitality is already running at 91.4% occupancy with 11 service tickets opened in the last 24 hours. The same wave will push retail foot traffic up within hours. We are absorbing peak demand with stretched staff.
+> Three entities are straining in the same 24-hour window, and the strains are connected. Hospitality is at 91.4% occupancy with open operational tickets and late-checkout policy breaking down. Retail faces a 3,100-passenger cruise arrival. Real estate is carrying a backlog of six HVAC issues with after-hours calls. Each looks routine alone. Together they are a single capacity event.
 >
-> Hospitality is the weak point. Front desk is granting late checkout overrides under pressure, which compresses room turnover exactly when we need it fastest. Housekeeping cannot clear rooms if checkouts slip, and the ticket backlog will grow through the day unless we add hands now.
+> The binding constraint is facilities. HVAC failures degrade the exact spaces where hotel guests sleep and where cruise shoppers browse. If climate control falters during peak load, guest complaints and walkouts will follow within hours, not days. Maintenance staff are the scarce resource, and they are being pulled into reactive work instead of pre-positioned for the peak.
 >
-> Retail is the opportunity. Cruise passengers convert quickly and leave quickly. If checkout lines stall or key SKUs are not staged on the floor, we lose the sale and it does not come back tomorrow.
+> The second constraint is front-line labor. Hospitality's inability to enforce late checkout signals the front desk is already overloaded. Retail has not yet absorbed the cruise wave. Staff cannot be borrowed across entities if each is firefighting its own queue.
 >
-> Action is straightforward: surge staff the front desk and housekeeping, hold the line on late checkouts for the next 24 hours, and put retail floor managers on notice for a 1–4 hour traffic spike with full registers and stocked displays.
+> Action this cycle is operational, not strategic: a same-day triage call between the hospitality GM, retail manager, and facilities lead to sequence HVAC repairs toward guest rooms and retail floor first, enforce late-checkout discipline, and pre-stage retail coverage before the ship docks. This is worth executive visibility because the failure mode is a visible guest-experience incident on a high-revenue day, not a slow drift.
 >
 > **Contradictions to note**
-> - Front desk is granting discretionary late checkout overrides at 91% occupancy, which contradicts the operational need to maximize room turnover during peak demand.
+> - Late-checkout policy is documented but not being enforced, contradicting the stated operating standard for room turnover on high-occupancy days
+> - Facilities is treated as a background function, yet today it is the binding constraint on both hospitality and retail revenue
 >
 > **Watch list for next cycle**
-> - Hospitality open service ticket count over next 24 hours
-> - Late checkout override rate during cruise day
-> - Room turnover time between checkout and next check-in
-> - Retail checkout queue length and transaction throughput during 1–4 hour window after cruise disembarkation
-> - High-demand retail SKU stockouts during cruise window
+> - HVAC ticket count and time-to-close over the next 48 hours, segmented by guest-facing vs back-of-house zones
+> - Hotel late-checkout compliance rate on cruise days
+> - Retail sales per labor hour during the 3,100-passenger arrival window
+> - Guest complaint volume tagged to room temperature or air quality
+> - After-hours maintenance call frequency as a leading indicator of deferred-maintenance debt
 
 ## Run metrics
 
 | Tier | Agent | Model | Calls | Input tokens | Output tokens | Cost | Latency |
 |---|---|---|---:|---:|---:|---:|---:|
-| L1 | `L1Classifier`  | `claude-haiku-4-5-20251001` | 6 | 2,493 | 596   | $0.00139 | 9.1 s total |
-| L2 | `L2Analyzer`    | `claude-sonnet-4-6`         | 1 |   796 | 391   | $0.00825 | 8.7 s |
-| L3 | `L3Synthesizer` | `claude-opus-4-7` (adaptive) | 1 | 1,108 | 619   | $0.06305 | 11.1 s |
-| **Total** |  |  | **8** | **4,397** | **1,606** | **$0.07267** | **28.8 s** |
+| L1 | `L1Classifier`  | `claude-haiku-4-5-20251001`           | 6 | 2,486 | 582   | $0.00135 | 11.2 s total |
+| L2 | `L2Analyzer`    | `claude-sonnet-4-6`                   | 1 |   789 | 473   | $0.00946 | 14.2 s |
+| L3 | `L3Synthesizer` | `claude-opus-4-7` (adaptive thinking) | 1 | 1,176 | 821   | $0.07921 | 16.0 s |
+| **Total** |           |                                       | **8** | **4,451** | **1,876** | **$0.09003** | **41.3 s** |
 
 ## What this demonstrates
 
 1. **Cross-entity synthesis works.** L2 correctly identified that the
-   cruise arrival (retail entity, external signal) cascaded into
-   hospitality pressure (operations category) — a pattern invisible
-   looking at either business alone.
-2. **Contradictions are surfaced.** L3 flagged the late-checkout
-   override policy as contradicting the operational need for room
-   turnover during peak demand — the kind of decision a dashboard
-   would never produce on its own.
+   cruise arrival (retail entity, external signal), the HVAC backlog
+   (real estate), and the hospitality ops queue were part of a single
+   capacity event, not three unrelated operational concerns.
+2. **Contradictions are surfaced.** L3 flagged two: the late-checkout
+   policy breakdown and the treatment of facilities as a background
+   function when it is actually the binding constraint. A dashboard
+   would never produce either finding.
 3. **Every decision is auditable.** Eight rows in `audit_log`,
    traceable from the final synthesis all the way back to the raw
    events via `analysis_ids → source_event_ids → event_id`.
-4. **Cost is predictable.** Under eight cents for a full portfolio
+4. **Cost is predictable.** Under ten cents for a full portfolio
    briefing across six events. At one cycle a day that is
-   ~$26/month for the model layer alone.
+   ~$27/month for the model layer.
 
 ## Reproducing
 

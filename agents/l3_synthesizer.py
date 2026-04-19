@@ -15,8 +15,9 @@ import textwrap
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from .base import Agent, ModelTier
 from schemas.models import Analysis, Synthesis
+
+from .base import Agent, ModelTier
 
 
 class L3Input(BaseModel):
@@ -54,17 +55,17 @@ class L3Synthesizer(Agent[L3Input, Synthesis]):
         markdown, no prose, no code fences:
 
         {
-          "analysis_ids":               ["<uuid>", ...],         // L2 analyses that fed this synthesis
+          "analysis_ids":               ["<uuid>", ...],
           "headline":                   "<=120 char executive headline",
           "briefing":                   "<3-6 paragraphs, under 4000 chars>",
-          "contradictions_detected":    ["<contradiction>", ...],// may be empty
-          "suggested_next_watch":       ["<thing to watch>", ...]// 1-5 items
+          "contradictions_detected":    ["<contradiction>", ...],
+          "suggested_next_watch":       ["<thing to watch>", ...]
         }
 
         What makes a good briefing:
-          - Write for a 70-year-old CEO of a multi-entity business. No
-            jargon, no hedging, no repetition. Short sentences, strong
-            verbs.
+          - Write for a non-technical executive of a multi-entity
+            business. No jargon, no hedging, no repetition. Short
+            sentences, strong verbs.
           - State the 2-3 things that actually matter THIS cycle across
             the portfolio, with the evidence in one line each.
           - Be explicit about contradictions: where does this cycle's
@@ -73,8 +74,8 @@ class L3Synthesizer(Agent[L3Input, Synthesis]):
             entry in contradictions_detected.
           - suggested_next_watch names the 1-5 concrete things to
             monitor in the next cycle. These should be observable
-            signals, not vague themes ("Rum Room 6pm-10pm bookings"
-            not "Rum Room performance").
+            signals, not vague themes ("bar bookings 6pm-10pm on
+            cruise days" not "bar performance").
           - If the analyses you receive do not warrant executive
             attention, say so plainly in the briefing. Do not invent
             urgency.

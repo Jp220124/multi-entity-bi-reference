@@ -15,8 +15,9 @@ import textwrap
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from .base import Agent, ModelTier
 from schemas.models import Analysis, Classification
+
+from .base import Agent, ModelTier
 
 
 class L2Input(BaseModel):

@@ -15,7 +15,7 @@ from __future__ import annotations
 
 import json
 import sqlite3
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from uuid import uuid4
 
@@ -24,11 +24,10 @@ import pytest
 from agents.l1_classifier import L1Classifier
 from agents.l2_analyzer import L2Analyzer
 from agents.l3_synthesizer import L3Synthesizer
-from agents.l4_delivery import L4Delivery, DeliveryAdapter, DeliveryRecord
+from agents.l4_delivery import DeliveryAdapter, DeliveryRecord, L4Delivery
 from context.store import SQLiteContextStore
 from orchestrator.router import TieredOrchestrator
 from schemas.models import EntityType, Event
-
 
 # ---------------------------------------------------------------------------
 # Test-only delivery adapter that captures instead of printing
@@ -176,13 +175,13 @@ def events() -> list[Event]:
             source_system="jewelry_pos",
             entity_hint=EntityType.RETAIL,
             payload={"location_anon": "store_1", "amount_usd": 1850.0},
-            observed_at=datetime(2026, 4, 18, 14, 30, tzinfo=timezone.utc),
+            observed_at=datetime(2026, 4, 18, 14, 30, tzinfo=UTC),
         ),
         Event(
             source_system="hotel_pms",
             entity_hint=EntityType.HOSPITALITY,
             payload={"location_anon": "property_a", "ops_ticket_count": 7},
-            observed_at=datetime(2026, 4, 18, 15, 45, tzinfo=timezone.utc),
+            observed_at=datetime(2026, 4, 18, 15, 45, tzinfo=UTC),
         ),
     ]
 

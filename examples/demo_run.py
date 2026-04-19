@@ -25,7 +25,7 @@ from __future__ import annotations
 import logging
 import os
 import sys
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 from anthropic import Anthropic
@@ -60,7 +60,7 @@ def _configure_logging() -> None:
 
 def _demo_events() -> list[Event]:
     """Six events spanning three entities, in the same 24-hour window."""
-    base = datetime(2026, 4, 19, 8, 0, tzinfo=timezone.utc)
+    base = datetime(2026, 4, 19, 8, 0, tzinfo=UTC)
 
     return [
         # Retail: a strong day at a jewelry location
@@ -168,20 +168,32 @@ def main() -> int:
     )
 
     events = _demo_events()
-    print(f"\nRunning demo over {len(events)} events spanning retail, hospitality, and real estate.")
+    print(
+        f"\nRunning demo over {len(events)} events spanning "
+        "retail, hospitality, and real estate."
+    )
     print(f"Models: {haiku} / {sonnet} / {opus}")
     print()
 
-    result = orch.run_cycle(events, correlation_window_hours=24, deliver_to=Channel.STDOUT)
+    result = orch.run_cycle(
+        events, correlation_window_hours=24, deliver_to=Channel.STDOUT
+    )
 
     print("\n----- Run summary -----")
     print(f"  Classifications: {len(result.classifications)}")
     print(f"  Analyses:        {len(result.analyses)}")
     print(f"  Synthesis:       {'yes' if result.synthesis else 'no'}")
-    print(f"  L1/L2/L3 failures: {result.l1_failures}/{result.l2_failures}/{result.l3_failures}")
+    print(
+        f"  L1/L2/L3 failures: "
+        f"{result.l1_failures}/{result.l2_failures}/{result.l3_failures}"
+    )
     print(f"  {result.cost_summary()}")
     print("\nAudit trail is in the SQLite database at ./context/context.db.")
-    print("Inspect with:\n    sqlite3 context/context.db 'SELECT agent_name, tier, input_tokens, output_tokens, estimated_cost_usd FROM audit_log;'")
+    print(
+        "Inspect with:\n    sqlite3 context/context.db 'SELECT "
+        "agent_name, tier, input_tokens, output_tokens, "
+        "estimated_cost_usd FROM audit_log;'"
+    )
     return 0
 
 

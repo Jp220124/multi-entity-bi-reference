@@ -1,6 +1,6 @@
 """L4 · Alerting / Output Delivery agent.
 
-Shared utility used by Agents 1–3 to format and dispatch outputs to
+Shared utility used by Agents 1-3 to format and dispatch outputs to
 the operator's preferred channel (Slack, email, or custom webhook).
 Handles threading, retry, and dead-letter logging.
 

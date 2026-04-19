@@ -11,7 +11,7 @@ from __future__ import annotations
 import json
 import sys
 import traceback
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from unittest.mock import MagicMock
 from uuid import uuid4
 
@@ -57,7 +57,7 @@ def test_event_rejects_extra_fields() -> None:
         Event(
             source_system="pos",
             payload={"a": 1},
-            observed_at=datetime.now(timezone.utc),
+            observed_at=datetime.now(UTC),
             made_up_field="nope",  # type: ignore[call-arg]
         )
     except ValidationError:
@@ -141,7 +141,7 @@ def _event() -> Event:
         source_system="jewelry_pos",
         entity_hint=EntityType.RETAIL,
         payload={"amount_usd": 412.50, "location_anon": "store_2"},
-        observed_at=datetime(2026, 4, 17, 14, 3, tzinfo=timezone.utc),
+        observed_at=datetime(2026, 4, 17, 14, 3, tzinfo=UTC),
     )
 
 
@@ -244,8 +244,9 @@ def test_build_prompt_includes_metadata() -> None:
 
 
 def test_sqlite_store_roundtrip(tmp_path="") -> None:  # type: ignore[no-untyped-def]
-    import tempfile
     import os as _os
+    import tempfile
+
     from context.store import SQLiteContextStore
 
     with tempfile.TemporaryDirectory() as td:
@@ -286,7 +287,10 @@ def test_sqlite_store_roundtrip(tmp_path="") -> None:  # type: ignore[no-untyped
 def main() -> int:
     print("Schema validation")
     _check("Event rejects extra fields",              test_event_rejects_extra_fields)
-    _check("Classification requires rationale",       test_classification_requires_nonempty_rationale)
+    _check(
+        "Classification requires rationale",
+        test_classification_requires_nonempty_rationale,
+    )
     _check("Analysis requires event + entity",        test_analysis_requires_event_and_entity)
     _check("Synthesis rejects empty briefing",        test_synthesis_rejects_empty_briefing)
     _check("Classification roundtrips JSON",          test_classification_roundtrips_through_json)

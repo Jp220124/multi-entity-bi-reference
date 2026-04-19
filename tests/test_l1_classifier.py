@@ -15,7 +15,6 @@ from pydantic import ValidationError
 from agents.l1_classifier import L1Classifier
 from schemas.models import EntityType, EventCategory, EventPriority
 
-
 # ---------------------------------------------------------------------------
 # Happy path
 # ---------------------------------------------------------------------------

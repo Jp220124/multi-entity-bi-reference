@@ -13,15 +13,16 @@ source_event_ids to L1, which is tied by event_id to the raw event.
 from __future__ import annotations
 
 import logging
+from collections.abc import Sequence
 from dataclasses import dataclass, field
-from typing import Sequence
+from typing import Any
 
 from pydantic import ValidationError
 
-from agents.base import Agent
+from agents.base import Agent, AgentResult
 from agents.l1_classifier import L1Classifier
 from agents.l2_analyzer import L2Analyzer, L2Input
-from agents.l3_synthesizer import L3Synthesizer, L3Input
+from agents.l3_synthesizer import L3Input, L3Synthesizer
 from agents.l4_delivery import Channel, L4Delivery
 from context.store import ContextStore
 from schemas.models import (
@@ -231,9 +232,9 @@ class TieredOrchestrator:
     @staticmethod
     def _track(
         result: OrchestratorResult,
-        agent_result,  # type: ignore[no-untyped-def]
+        agent_result: AgentResult[Any],
         *,
-        agent: Agent,  # type: ignore[type-arg]
+        agent: Agent[Any, Any],
     ) -> None:
         result.total_cost_usd += agent_result.estimated_cost_usd
         result.total_input_tokens += agent_result.input_tokens

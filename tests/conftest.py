@@ -9,14 +9,13 @@ real API calls live under ``tests/integration/`` and are skipped unless
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 from unittest.mock import MagicMock
 
 import pytest
 
 from schemas.models import EntityType, Event
-
 
 # ---------------------------------------------------------------------------
 # Event fixtures
@@ -35,7 +34,7 @@ def retail_sale_event() -> Event:
             "amount_usd": 412.50,
             "sku_count": 2,
         },
-        observed_at=datetime(2026, 4, 17, 14, 3, tzinfo=timezone.utc),
+        observed_at=datetime(2026, 4, 17, 14, 3, tzinfo=UTC),
     )
 
 
@@ -51,7 +50,7 @@ def hotel_cancellation_event() -> Event:
             "room_nights_lost": 42,
             "cancellation_window_hours": 18,
         },
-        observed_at=datetime(2026, 4, 17, 12, 0, tzinfo=timezone.utc),
+        observed_at=datetime(2026, 4, 17, 12, 0, tzinfo=UTC),
     )
 
 
