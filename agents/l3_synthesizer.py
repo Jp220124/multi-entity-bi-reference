@@ -13,6 +13,7 @@ from __future__ import annotations
 import os
 import textwrap
 
+from anthropic import Anthropic
 from pydantic import BaseModel, ConfigDict, Field
 
 from schemas.models import Analysis, Synthesis
@@ -29,21 +30,33 @@ class L3Input(BaseModel):
 
 
 class L3Synthesizer(Agent[L3Input, Synthesis]):
-    """Produce the portfolio-level briefing from escalated analyses."""
+    """Produce the portfolio-level briefing from escalated analyses.
+
+    Extended-thinking dial is read from the environment at construction
+    time, not at class-import time. This matters because agents are
+    typically imported at module load but the environment (including
+    any ``.env`` file) is only fully populated when the app main()
+    runs ``load_dotenv()``.
+
+    Supported env vars (instance-level, read per-construction):
+      - L3_THINKING_EFFORT        "low" | "medium" | "high"   (preferred)
+      - L3_THINKING_BUDGET_TOKENS  integer                     (legacy)
+    """
 
     tier = ModelTier.OPUS
     output_schema = Synthesis
     max_output_tokens = 4096
 
-    # Thinking dial is sourced from the environment so an operator can
-    # retune without a code change. "medium" is a balanced starting
-    # point; real engagements refine this in the first few weeks
-    # against observed output quality vs. cost.
-    #   L3_THINKING_EFFORT           "low" | "medium" | "high"   (preferred)
-    #   L3_THINKING_BUDGET_TOKENS    integer                      (legacy fallback)
-    thinking_effort = os.environ.get("L3_THINKING_EFFORT", "medium").strip() or None
-    _legacy_budget = os.environ.get("L3_THINKING_BUDGET_TOKENS", "").strip()
-    extended_thinking_budget_tokens = int(_legacy_budget) if _legacy_budget.isdigit() else None
+    def __init__(self, client: Anthropic, model_id: str) -> None:
+        super().__init__(client, model_id)
+
+        # Resolve thinking configuration at construction time so a
+        # late load_dotenv() call still influences behaviour.
+        effort = os.environ.get("L3_THINKING_EFFORT", "medium").strip()
+        self.thinking_effort = effort or None
+
+        legacy = os.environ.get("L3_THINKING_BUDGET_TOKENS", "").strip()
+        self.extended_thinking_budget_tokens = int(legacy) if legacy.isdigit() else None
 
     system_prompt = textwrap.dedent(
         """\

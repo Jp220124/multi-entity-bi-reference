@@ -116,8 +116,15 @@ class TieredOrchestrator:
         result = OrchestratorResult()
 
         # --- Stage 1: persist raw events -----------------------------
+        # save_event is idempotent — reprocessing a cycle with the same
+        # event ids is a no-op rather than a crash. An IntegrityError
+        # from a duplicate primary key is logged and swallowed; the rest
+        # of the event list is still processed.
         for event in events:
-            self._store.save_event(event)
+            try:
+                self._store.save_event(event)
+            except Exception:
+                logger.debug("save_event skipped for %s (likely duplicate)", event.id)
 
         # --- Stage 2: L1 classify every event ------------------------
         notable_classifications: list[Classification] = []
@@ -188,35 +195,39 @@ class TieredOrchestrator:
                 result.l2_failures += 1
 
         # --- Stage 4: L3 strategic synthesis -------------------------
+        # Gate: L3 runs when either
+        #   (a) at least one L2 analysis flagged itself for escalation,
+        #       OR
+        #   (b) any event was classified as URGENT and L2 produced at
+        #       least one analysis this cycle (we reuse L2's synthesis
+        #       input rather than synthesize a single-event Analysis —
+        #       L2 already saw the urgent event in its notable batch).
         escalated = [a for a in result.analyses if a.escalate_to_l3]
-        if escalated or urgent_classifications:
-            # If L2 escalated nothing but L1 marked events urgent, we
-            # still produce a synthesis — skipping urgents would violate
-            # the "urgent bypasses L2" contract.
-            if not escalated and urgent_classifications:
-                # Synthesize directly from L2's latest batch as thin context.
-                escalated = result.analyses or []
-            if escalated:
-                try:
-                    l3_result = self._l3.run(L3Input(analyses=escalated))
-                    self._track(result, l3_result, agent=self._l3)
-                    synthesis = l3_result.output
-                    self._store.save_synthesis(
-                        synthesis,
-                        model_id=l3_result.model_id,
-                        tier=self._l3.tier.value,
-                        agent_name=type(self._l3).__name__,
-                        input_tokens=l3_result.input_tokens,
-                        output_tokens=l3_result.output_tokens,
-                        estimated_cost_usd=l3_result.estimated_cost_usd,
-                        latency_ms=l3_result.latency_ms,
-                    )
-                    result.synthesis = synthesis
-                except ValidationError:
-                    result.l3_failures += 1
-                except Exception:
-                    logger.exception("L3 failed on escalated analyses")
-                    result.l3_failures += 1
+        if not escalated and urgent_classifications and result.analyses:
+            # Urgent override: even if L2 didn't recommend escalation,
+            # route to L3 so a human operator gets notified today.
+            escalated = list(result.analyses)
+        if escalated:
+            try:
+                l3_result = self._l3.run(L3Input(analyses=escalated))
+                self._track(result, l3_result, agent=self._l3)
+                synthesis = l3_result.output
+                self._store.save_synthesis(
+                    synthesis,
+                    model_id=l3_result.model_id,
+                    tier=self._l3.tier.value,
+                    agent_name=type(self._l3).__name__,
+                    input_tokens=l3_result.input_tokens,
+                    output_tokens=l3_result.output_tokens,
+                    estimated_cost_usd=l3_result.estimated_cost_usd,
+                    latency_ms=l3_result.latency_ms,
+                )
+                result.synthesis = synthesis
+            except ValidationError:
+                result.l3_failures += 1
+            except Exception:
+                logger.exception("L3 failed on escalated analyses")
+                result.l3_failures += 1
 
         # --- Stage 5: L4 delivery ------------------------------------
         if result.synthesis is not None:

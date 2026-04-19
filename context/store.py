@@ -154,10 +154,17 @@ class SQLiteContextStore(ContextStore):
     # -- writes --------------------------------------------------------
 
     def save_event(self, event: Event) -> None:
+        """Insert an event. Idempotent: reinsert of an existing id is a no-op.
+
+        Rationale: upstream pipelines commonly replay the same window of
+        events (e.g. when a cycle crashes and restarts). Crashing the
+        whole cycle on a duplicate primary key would be a regression
+        from the operator's perspective.
+        """
         with self._connect() as conn:
             conn.execute(
                 """
-                INSERT INTO events
+                INSERT OR IGNORE INTO events
                     (id, source_system, entity_hint, observed_at, payload_json, created_at)
                 VALUES (?, ?, ?, ?, ?, ?)
                 """,
